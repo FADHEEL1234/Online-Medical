@@ -268,3 +268,4 @@ npm install
 - `src/pages/MyAppointments.jsx` - User appointments page
 - `src/components/Navbar.jsx` - Navigation component
 "# Medical" 
+"# Medical" 
