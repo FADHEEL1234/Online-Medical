@@ -32,7 +32,6 @@ class UserRegistrationView(generics.CreateAPIView):
         return Response({
             'message': 'User registered successfully',
             'user': {
-                'id': user.id,
                 'username': user.username,
                 'email': user.email
             }

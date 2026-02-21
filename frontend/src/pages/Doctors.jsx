@@ -60,6 +60,21 @@ function Doctors() {
               <p className="contact">Email: {doctor.email}</p>
               <p className="contact">Phone: {doctor.phone}</p>
               <p className="contact">Available: {doctor.available_from || 'N/A'} – {doctor.available_to || 'N/A'}</p>
+              <p className="available-days">Days: {
+                (() => {
+                  const names = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+                  const days = doctor.available_days || [];
+                  if (!days || days.length === 0) return 'N/A';
+                  try {
+                    const labels = days.map(d => names[parseInt(d, 10)]).filter(Boolean);
+                    return labels.map((label, idx) => (
+                      <span key={idx} className="day-pill">{label}</span>
+                    ));
+                  } catch (e) {
+                    return 'N/A';
+                  }
+                })()
+              }</p>
               <button 
                 className="btn btn-primary" 
                 style={{ marginTop: '15px' }}

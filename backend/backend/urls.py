@@ -5,6 +5,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView
 from django.http import JsonResponse
+from django.shortcuts import redirect
 from rest_framework_simplejwt.views import TokenRefreshView
 from appointments.views import CustomTokenObtainPairView
 
@@ -19,4 +20,6 @@ urlpatterns = [
     path('api/', include('appointments.urls')),
     # simple health check endpoint used by front‑end to detect backend status
     path('api/health/', lambda request: JsonResponse({'status': 'ok'}), name='health'),
+    # Redirect site root to frontend login page
+    path('', lambda request: redirect('/login/'), name='root'),
 ]

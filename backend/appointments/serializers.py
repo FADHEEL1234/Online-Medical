@@ -44,10 +44,17 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class DoctorSerializer(serializers.ModelSerializer):
     """Serializer for Doctor model."""
-    
+    available_days = serializers.ListField(
+        child=serializers.IntegerField(min_value=0, max_value=6),
+        source='available_days_list',
+        required=False,
+        allow_empty=True,
+        default=list,
+    )
+
     class Meta:
         model = Doctor
-        fields = ['id', 'name', 'specialization', 'email', 'phone', 'available_from', 'available_to', 'created_at']
+        fields = ['id', 'name', 'specialization', 'email', 'phone', 'available_from', 'available_to', 'available_days', 'created_at']
         read_only_fields = ['id', 'created_at']
 
 
@@ -103,4 +110,9 @@ class AppointmentCreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Appointment time is before the doctor's available hours")
             if doctor.available_to and appt_time > doctor.available_to:
                 raise serializers.ValidationError("Appointment time is after the doctor's available hours")
+            # check weekday availability (0=Monday ... 6=Sunday)
+            weekday = appt_date.weekday()
+            available_days = getattr(doctor, 'available_days_list', None)
+            if available_days is not None and len(available_days) > 0 and weekday not in available_days:
+                raise serializers.ValidationError("Doctor is not available on the selected day")
         return data

@@ -46,7 +46,7 @@ function Login() {
 
 
   return (
-    <div className="card" style={{ maxWidth: '500px', margin: '40px auto' }}>
+    <div className="card login-card">
       <h2>Login</h2>
       
       {backendError && <div className="message message-error">{backendError}</div>}
@@ -82,18 +82,17 @@ function Login() {
           />
         </div>
 
-        <button
-          type="submit"
-          className="btn btn-primary"
-          style={{ width: '100%' }}
-          disabled={loading || !backendUp}
-        >
-          {loading ? 'Logging in...' : 'Login'}
-        </button>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={loading || !backendUp}
+          >
+            {loading ? 'Logging in...' : 'Login'}
+          </button>
       </form>
 
-      <p style={{ marginTop: '20px', textAlign: 'center' }}>
-        Don't have an account? <Link to="/register">Register here</Link>
+      <p className="login-footer">
+        Don't have an account? <Link to="/register" className="register-link">Register here</Link>
       </p>
     </div>
   );

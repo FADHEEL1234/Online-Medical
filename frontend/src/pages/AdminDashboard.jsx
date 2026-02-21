@@ -6,7 +6,7 @@ function AdminDashboard() {
   const navigate = useNavigate();
   const [doctors, setDoctors] = useState([]);
   const [appointments, setAppointments] = useState([]);
-  const [newDoctor, setNewDoctor] = useState({ name: '', specialization: '', email: '', phone: '', available_from: '09:00', available_to: '17:00' });
+  const [newDoctor, setNewDoctor] = useState({ name: '', specialization: '', email: '', phone: '', available_from: '09:00', available_to: '17:00', available_days: [] });
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -30,6 +30,12 @@ function AdminDashboard() {
 
   const handleDoctorChange = (e) => {
     setNewDoctor({ ...newDoctor, [e.target.name]: e.target.value });
+  };
+
+  const toggleAvailableDay = (day) => {
+    const days = new Set(newDoctor.available_days || []);
+    if (days.has(day)) days.delete(day); else days.add(day);
+    setNewDoctor({ ...newDoctor, available_days: Array.from(days).sort((a,b)=>a-b) });
   };
 
   const handleDoctorSubmit = async (e) => {
@@ -93,6 +99,17 @@ function AdminDashboard() {
               To:
               <input type="time" name="available_to" value={newDoctor.available_to} onChange={handleDoctorChange} required />
             </label>
+          </div>
+          <div style={{ marginTop: '8px' }}>
+            <label style={{ display: 'block', marginBottom: '6px' }}>Available days</label>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((label, idx) => (
+                <label key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <input type="checkbox" checked={(newDoctor.available_days||[]).includes(idx)} onChange={() => toggleAvailableDay(idx)} />
+                  <span style={{ fontSize: '13px' }}>{label}</span>
+                </label>
+              ))}
+            </div>
           </div>
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             <button type="submit" disabled={loading}>

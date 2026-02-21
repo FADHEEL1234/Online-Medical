@@ -267,3 +267,4 @@ npm install
 - `src/pages/BookAppointment.jsx` - Book appointment page
 - `src/pages/MyAppointments.jsx` - User appointments page
 - `src/components/Navbar.jsx` - Navigation component
+"# Medical" 
