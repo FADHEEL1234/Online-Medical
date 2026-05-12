@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import api, { doctorsAPI, appointmentsAPI } from '../api/api';
+import api, { doctorsAPI, appointmentsAPI, usersAPI } from '../api/api';
 import { useNavigate } from 'react-router-dom';
 
 function AdminDashboard() {
   const navigate = useNavigate();
   const [doctors, setDoctors] = useState([]);
   const [appointments, setAppointments] = useState([]);
+  const [users, setUsers] = useState([]);
   const [newDoctor, setNewDoctor] = useState({ name: '', specialization: '', email: '', phone: '', available_from: '09:00', available_to: '17:00', available_days: [] });
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -17,12 +18,14 @@ function AdminDashboard() {
 
   const fetchData = async () => {
     try {
-      const [docResp, apptResp] = await Promise.all([
+      const [docResp, apptResp, userResp] = await Promise.all([
         doctorsAPI.getAll(),
-        appointmentsAPI.adminList()
+        appointmentsAPI.adminList(),
+        usersAPI.adminList()
       ]);
       setDoctors(docResp.data);
       setAppointments(apptResp.data);
+      setUsers(userResp.data);
     } catch (err) {
       setError('Failed to load admin data');
     }
@@ -49,7 +52,7 @@ function AdminDashboard() {
       } else {
         await doctorsAPI.create(newDoctor);
       }
-      setNewDoctor({ name: '', specialization: '', email: '', phone: '', available_from: '09:00', available_to: '17:00' });
+      setNewDoctor({ name: '', specialization: '', email: '', phone: '', available_from: '09:00', available_to: '17:00', available_days: [] });
       fetchData();
     } catch (err) {
       setError(err.response?.data || 'Error saving doctor');
@@ -67,10 +70,63 @@ function AdminDashboard() {
     }
   };
 
+  const formatDate = (dateValue) => {
+    if (!dateValue) return 'Not logged in yet';
+    return new Date(dateValue).toLocaleString();
+  };
+
+  const getRole = (user) => {
+    if (user.is_superuser) return 'Super admin';
+    if (user.is_staff) return 'Admin';
+    return 'User';
+  };
+
   return (
     <div className="admin-dashboard">
       <h1>Admin dashboard</h1>
       {error && <div className="message message-error">{error}</div>}
+
+      <section className="admin-section">
+        <h2>Registered users</h2>
+        <div className="admin-summary">
+          <span>Total users: {users.length}</span>
+          <span>Logged in users: {users.filter((user) => user.last_login).length}</span>
+        </div>
+        <table className="admin-table users-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Registered</th>
+              <th>Last login</th>
+              <th>Appointments</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((user) => (
+              <tr key={user.id}>
+                <td>{user.id}</td>
+                <td>{user.full_name}</td>
+                <td>{user.username}</td>
+                <td>{user.email || '-'}</td>
+                <td>{getRole(user)}</td>
+                <td>{formatDate(user.date_joined)}</td>
+                <td>{formatDate(user.last_login)}</td>
+                <td>{user.appointment_count}</td>
+              </tr>
+            ))}
+            {users.length === 0 && (
+              <tr>
+                <td colSpan="8">No registered users found.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </section>
+
       <section className="admin-section">
         <h2>Doctors</h2>
         <form onSubmit={handleDoctorSubmit} className="admin-form">
@@ -116,7 +172,7 @@ function AdminDashboard() {
               {loading ? (editingId ? 'Saving...' : 'Adding...') : (editingId ? 'Save changes' : 'Add doctor')}
             </button>
             {editingId && (
-              <button type="button" onClick={() => { setEditingId(null); setNewDoctor({ name: '', specialization: '', email: '', phone: '', available_from: '09:00', available_to: '17:00' }); }} className="btn btn-secondary">
+              <button type="button" onClick={() => { setEditingId(null); setNewDoctor({ name: '', specialization: '', email: '', phone: '', available_from: '09:00', available_to: '17:00', available_days: [] }); }} className="btn btn-secondary">
                 Cancel
               </button>
             )}
@@ -140,6 +196,7 @@ function AdminDashboard() {
                     phone: d.phone,
                     available_from: d.available_from ? d.available_from.slice(0,5) : '09:00',
                     available_to: d.available_to ? d.available_to.slice(0,5) : '17:00',
+                    available_days: d.available_days || [],
                   });
                 }}
               >

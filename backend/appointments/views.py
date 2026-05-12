@@ -6,6 +6,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import Doctor, Appointment
 from .serializers import (
     UserRegistrationSerializer, 
+    UserAdminSerializer,
     DoctorSerializer, 
     AppointmentSerializer,
     AppointmentCreateSerializer,
@@ -36,6 +37,13 @@ class UserRegistrationView(generics.CreateAPIView):
                 'email': user.email
             }
         }, status=status.HTTP_201_CREATED)
+
+
+class AdminUserListView(generics.ListAPIView):
+    """Admin view that lists registered users and their login activity."""
+    queryset = User.objects.all().order_by('-date_joined')
+    serializer_class = UserAdminSerializer
+    permission_classes = [permissions.IsAdminUser]
 
 
 class DoctorListView(generics.ListAPIView):

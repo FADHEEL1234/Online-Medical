@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api, { authAPI } from '../api/api';
+import { authAPI } from '../api/api';
 import useBackendStatus from '../hooks/useBackendStatus';
 
 function Login() {
@@ -47,7 +47,11 @@ function Login() {
 
   return (
     <div className="card login-card">
-      <h2>Login</h2>
+      <div className="login-heading">
+        <span className="login-kicker">Medical appointment system</span>
+        <h2>Ingia kwenye account</h2>
+        <p>Admin ataenda kwenye admin dashboard, user ataenda kwenye dashboard yake.</p>
+      </div>
       
       {backendError && <div className="message message-error">{backendError}</div>}
       {error && <div className="message message-error">{error}</div>}
@@ -87,12 +91,12 @@ function Login() {
             className="btn btn-primary"
             disabled={loading || !backendUp}
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? 'Inaingia...' : 'Login'}
           </button>
       </form>
 
       <p className="login-footer">
-        Don't have an account? <Link to="/register" className="register-link">Register here</Link>
+        Huna account? <Link to="/register" className="register-link">Register hapa</Link>
       </p>
     </div>
   );

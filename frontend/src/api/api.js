@@ -94,4 +94,8 @@ export const appointmentsAPI = {
   adminUpdate: (id, data) => api.patch(`/admin/appointments/${id}/`, data),
 };
 
+export const usersAPI = {
+  adminList: () => api.get('/admin/users/'),
+};
+
 export default api;

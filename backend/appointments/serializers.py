@@ -30,6 +30,33 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return user
 
 
+class UserAdminSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    appointment_count = serializers.IntegerField(source='appointments.count', read_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'full_name',
+            'is_staff',
+            'is_superuser',
+            'is_active',
+            'date_joined',
+            'last_login',
+            'appointment_count',
+        ]
+        read_only_fields = fields
+
+    def get_full_name(self, obj):
+        full_name = obj.get_full_name().strip()
+        return full_name or obj.username
+
+
 # extend simplejwt serializer to include username in the response
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
