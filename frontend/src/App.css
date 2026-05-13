@@ -189,6 +189,78 @@ table tr:hover {
   100% { transform: rotate(360deg); }
 }
 
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes successCardPop {
+  0% {
+    opacity: 0;
+    transform: translateY(26px) scale(0.86);
+  }
+  65% {
+    opacity: 1;
+    transform: translateY(-8px) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes successBadgeBounce {
+  0% {
+    transform: scale(0.4) translateY(20px);
+  }
+  55% {
+    transform: scale(1.08) translateY(-8px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes checkDraw {
+  from {
+    opacity: 0;
+    transform: rotate(45deg) scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(45deg) scale(1);
+  }
+}
+
+@keyframes burstRingExpand {
+  0% {
+    opacity: 0.5;
+    transform: translateX(-50%) scale(0.7);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) scale(1.18);
+  }
+}
+
+@keyframes confettiPop {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.4);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-22px) scale(1);
+  }
+}
+
 /* Welcome Section */
 .welcome-section {
   text-align: center;
@@ -420,6 +492,152 @@ table tr:hover {
   margin-top: 18px;
   text-align: center;
   color: #4b5563;
+}
+
+.login-success-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.38);
+  backdrop-filter: blur(8px);
+  animation: overlayFadeIn 0.28s ease-out both;
+}
+
+.login-success-card {
+  position: relative;
+  width: min(100%, 380px);
+  padding: 34px 28px 30px;
+  border-radius: 28px;
+  text-align: center;
+  background: linear-gradient(180deg, #ffffff 0%, #ecfeff 100%);
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.22);
+  overflow: hidden;
+  animation: successCardPop 0.52s cubic-bezier(0.2, 0.9, 0.2, 1.15) both;
+}
+
+.login-success-card::before {
+  content: '';
+  position: absolute;
+  inset: auto -20% -45% -20%;
+  height: 160px;
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.18) 0%, rgba(34, 197, 94, 0) 72%);
+  pointer-events: none;
+}
+
+.login-success-burst {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.burst-ring,
+.burst-dot {
+  position: absolute;
+  border-radius: 999px;
+}
+
+.burst-ring {
+  border: 2px solid rgba(34, 197, 94, 0.22);
+}
+
+.burst-ring-one {
+  width: 120px;
+  height: 120px;
+  top: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: burstRingExpand 1.3s ease-out infinite;
+}
+
+.burst-ring-two {
+  width: 156px;
+  height: 156px;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: burstRingExpand 1.3s ease-out infinite 0.22s;
+}
+
+.burst-dot {
+  background: linear-gradient(180deg, #facc15 0%, #fb7185 100%);
+  opacity: 0;
+  animation: confettiPop 1.4s ease-out infinite;
+}
+
+.burst-dot-one {
+  width: 14px;
+  height: 14px;
+  top: 52px;
+  left: 68px;
+}
+
+.burst-dot-two {
+  width: 10px;
+  height: 10px;
+  top: 70px;
+  right: 74px;
+  animation-delay: 0.15s;
+}
+
+.burst-dot-three {
+  width: 12px;
+  height: 12px;
+  top: 126px;
+  right: 104px;
+  animation-delay: 0.28s;
+}
+
+.login-success-badge {
+  position: relative;
+  width: 92px;
+  height: 92px;
+  margin: 10px auto 18px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+  box-shadow: 0 18px 30px rgba(34, 197, 94, 0.34);
+  animation: successBadgeBounce 0.72s ease-out both 0.08s;
+}
+
+.login-success-check {
+  position: absolute;
+  top: 25px;
+  left: 31px;
+  width: 22px;
+  height: 38px;
+  border-right: 6px solid #fff;
+  border-bottom: 6px solid #fff;
+  transform: rotate(45deg) scale(0);
+  transform-origin: center;
+  animation: checkDraw 0.3s ease-out forwards 0.35s;
+}
+
+.login-success-card h3 {
+  margin: 0 0 10px;
+  color: #0f172a;
+  font-size: 1.9rem;
+}
+
+.login-success-card p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.login-success-caption {
+  display: inline-flex;
+  margin-top: 18px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .register-link {
@@ -844,9 +1062,23 @@ table tr:hover {
   .action-card {
     padding: 24px 20px;
   }
+
+  .login-success-card {
+    padding: 30px 22px 26px;
+  }
+
+  .login-success-card h3 {
+    font-size: 1.6rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .login-success-overlay,
+  .login-success-card,
+  .burst-ring,
+  .burst-dot,
+  .login-success-badge,
+  .login-success-check,
   .dashboard-shell::before,
   .dashboard-shell::after,
   .dashboard-hero,
