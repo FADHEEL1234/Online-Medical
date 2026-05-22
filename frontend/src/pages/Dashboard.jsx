@@ -17,14 +17,14 @@ function Dashboard() {
     {
       title: 'Weka appointment',
       description: 'Chagua daktari na muda wa kumuona',
-      accent: 'action-card-gold',
+      accent: 'action-card-blue',
       label: 'Panga muda',
       onClick: () => navigate('/book-appointment'),
     },
     {
       title: 'Appointments zangu',
       description: 'Angalia status na historia ya miadi yako',
-      accent: 'action-card-green',
+      accent: 'action-card-blue',
       label: 'Fuatilia',
       onClick: () => navigate('/my-appointments'),
     },
@@ -34,11 +34,12 @@ function Dashboard() {
     actions.push({
       title: 'Admin Panel',
       description: 'Simamia users, doctors na appointments',
-      accent: 'action-card-rose',
+      accent: 'action-card-blue',
       label: 'Fungua admin',
       onClick: () => navigate('/admin'),
     });
   }
+
 
   const handleLogout = () => {
     authAPI.logout();

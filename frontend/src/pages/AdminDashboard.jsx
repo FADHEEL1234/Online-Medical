@@ -242,22 +242,23 @@ function AdminDashboard() {
           <td>
             {a.status !== 'Approved' && (
               <button
-                className="btn"
+                className="btn btn-primary"
                 onClick={() => changeAppointmentStatus(a.id, 'Approved')}
-                style={{backgroundColor:'#28a745',color:'#fff'}}
+                style={{ backgroundColor: '#007bff' }}
               >
                 Approve
               </button>
             )}
             {a.status !== 'Rejected' && (
               <button
-                className="btn"
+                className="btn btn-secondary"
                 onClick={() => changeAppointmentStatus(a.id, 'Rejected')}
-                style={{backgroundColor:'#dc3545',color:'#fff'}}
+                style={{ backgroundColor: '#0056b3' }}
               >
                 Reject
               </button>
             )}
+
           </td>
               </tr>
             ))}

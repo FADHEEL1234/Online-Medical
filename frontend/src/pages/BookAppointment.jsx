@@ -63,10 +63,11 @@ function BookAppointment() {
     setSubmitting(true);
     try {
       await appointmentsAPI.create(formData);
-      setSuccess('Appointment booked successfully!');
+      setSuccess('Appointment booked successfully! Usisahau kutembelea account yako ili kuona majibu.');
       setTimeout(() => {
         navigate('/my-appointments');
       }, 1500);
+
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to book appointment. Please try again.');
     } finally {
