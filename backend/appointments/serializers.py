@@ -1,7 +1,24 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import Doctor, Appointment
+from .models import (
+    Doctor,
+    Appointment,
+    Assessment,
+    AssessmentQuestion,
+    AssessmentResponse,
+    CounselingSession,
+    Counselor,
+    CrisisContact,
+    FavoriteQuote,
+    JournalEntry,
+    MoodEntry,
+    MotivationalQuote,
+    Notification,
+    SelfCarePlanItem,
+    WellnessCategory,
+    WellnessResource,
+)
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -143,3 +160,209 @@ class AppointmentCreateSerializer(serializers.ModelSerializer):
             if available_days is not None and len(available_days) > 0 and weekday not in available_days:
                 raise serializers.ValidationError("Doctor is not available on the selected day")
         return data
+
+
+class CounselorSerializer(serializers.ModelSerializer):
+    available_days = serializers.ListField(
+        child=serializers.IntegerField(min_value=0, max_value=6),
+        source='available_days_list',
+        required=False,
+        allow_empty=True,
+        default=list,
+    )
+
+    class Meta:
+        model = Counselor
+        fields = [
+            'id', 'name', 'specialization', 'email', 'phone', 'bio',
+            'available_from', 'available_to', 'available_days', 'is_active',
+            'created_at',
+        ]
+        read_only_fields = ['id', 'created_at']
+
+
+class CounselingSessionSerializer(serializers.ModelSerializer):
+    counselor_name = serializers.CharField(source='counselor.name', read_only=True)
+    counselor_specialization = serializers.CharField(source='counselor.specialization', read_only=True)
+    user_name = serializers.CharField(source='user.username', read_only=True)
+
+    class Meta:
+        model = CounselingSession
+        fields = [
+            'id', 'user', 'user_name', 'counselor', 'counselor_name',
+            'counselor_specialization', 'session_date', 'reason', 'status',
+            'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'user', 'status', 'created_at', 'updated_at']
+
+    def validate(self, data):
+        session_date = data.get('session_date')
+        counselor = data.get('counselor')
+        from django.utils import timezone
+        if session_date and session_date < timezone.now():
+            raise serializers.ValidationError("Session date cannot be in the past")
+        if counselor and session_date:
+            session_time = session_date.time()
+            if session_time < counselor.available_from:
+                raise serializers.ValidationError("Session time is before the counselor's available hours")
+            if session_time > counselor.available_to:
+                raise serializers.ValidationError("Session time is after the counselor's available hours")
+            if counselor.available_days_list and session_date.weekday() not in counselor.available_days_list:
+                raise serializers.ValidationError("Counselor is not available on the selected day")
+        return data
+
+
+class CounselingSessionAdminSerializer(CounselingSessionSerializer):
+    class Meta(CounselingSessionSerializer.Meta):
+        read_only_fields = [
+            f for f in CounselingSessionSerializer.Meta.read_only_fields
+            if f != 'status'
+        ]
+
+
+class MoodEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MoodEntry
+        fields = ['id', 'mood', 'intensity', 'notes', 'entry_date', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+    def validate_intensity(self, value):
+        if value < 1 or value > 10:
+            raise serializers.ValidationError("Intensity must be between 1 and 10")
+        return value
+
+
+class AssessmentQuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AssessmentQuestion
+        fields = ['id', 'assessment', 'text', 'order', 'max_score']
+
+
+class AssessmentSerializer(serializers.ModelSerializer):
+    questions = AssessmentQuestionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Assessment
+        fields = ['id', 'title', 'assessment_type', 'description', 'is_active', 'created_at', 'questions']
+        read_only_fields = ['id', 'created_at']
+
+
+class AssessmentResponseSerializer(serializers.ModelSerializer):
+    assessment_title = serializers.CharField(source='assessment.title', read_only=True)
+
+    class Meta:
+        model = AssessmentResponse
+        fields = ['id', 'assessment', 'assessment_title', 'answers', 'total_score', 'recommendation', 'created_at']
+        read_only_fields = ['id', 'total_score', 'recommendation', 'created_at']
+
+    def validate(self, data):
+        assessment = data.get('assessment')
+        answers = data.get('answers') or {}
+        question_ids = set(assessment.questions.values_list('id', flat=True)) if assessment else set()
+        for key, value in answers.items():
+            try:
+                question_id = int(key)
+                score = int(value)
+            except (TypeError, ValueError):
+                raise serializers.ValidationError("Answers must map question ids to numeric scores")
+            if question_id not in question_ids:
+                raise serializers.ValidationError("Answer contains a question outside this assessment")
+            max_score = assessment.questions.get(id=question_id).max_score
+            if score < 0 or score > max_score:
+                raise serializers.ValidationError("Answer score is outside the allowed range")
+        return data
+
+    def create(self, validated_data):
+        answers = validated_data.get('answers') or {}
+        total = sum(int(score) for score in answers.values())
+        validated_data['total_score'] = total
+        validated_data['recommendation'] = self.get_recommendation(validated_data['assessment'], total)
+        return super().create(validated_data)
+
+    def get_recommendation(self, assessment, score):
+        if assessment.assessment_type == 'PHQ9':
+            if score >= 20:
+                return 'Severe symptoms. Please seek professional support as soon as possible.'
+            if score >= 10:
+                return 'Moderate symptoms. Consider booking a counseling session.'
+            return 'Minimal to mild symptoms. Keep tracking your mood and self-care habits.'
+        if assessment.assessment_type == 'GAD7':
+            if score >= 15:
+                return 'Severe anxiety range. Professional guidance is recommended.'
+            if score >= 10:
+                return 'Moderate anxiety range. Counseling and relaxation routines may help.'
+            return 'Mild anxiety range. Continue monitoring and practicing stress reduction.'
+        if score >= 18:
+            return 'High stress range. Prioritize rest, support, and a counseling check-in.'
+        if score >= 10:
+            return 'Moderate stress range. Review your self-care plan and workload.'
+        return 'Lower stress range. Keep building healthy routines.'
+
+
+class WellnessCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WellnessCategory
+        fields = ['id', 'name', 'description']
+
+
+class WellnessResourceSerializer(serializers.ModelSerializer):
+    category_name = serializers.CharField(source='category.name', read_only=True)
+
+    class Meta:
+        model = WellnessResource
+        fields = [
+            'id', 'title', 'category', 'category_name', 'resource_type',
+            'summary', 'content', 'url', 'is_featured', 'created_at',
+        ]
+        read_only_fields = ['id', 'created_at']
+
+
+class MotivationalQuoteSerializer(serializers.ModelSerializer):
+    is_favorite = serializers.SerializerMethodField()
+
+    class Meta:
+        model = MotivationalQuote
+        fields = ['id', 'text', 'author', 'is_active', 'is_favorite', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+    def get_is_favorite(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        return obj.favorites.filter(user=request.user).exists()
+
+
+class FavoriteQuoteSerializer(serializers.ModelSerializer):
+    quote_detail = MotivationalQuoteSerializer(source='quote', read_only=True)
+
+    class Meta:
+        model = FavoriteQuote
+        fields = ['id', 'quote', 'quote_detail', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+class SelfCarePlanItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SelfCarePlanItem
+        fields = ['id', 'title', 'item_type', 'target_date', 'reminder_time', 'is_completed', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+class JournalEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JournalEntry
+        fields = ['id', 'title', 'body', 'entry_date', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class CrisisContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CrisisContact
+        fields = ['id', 'name', 'phone', 'url', 'description', 'country', 'is_active']
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ['id', 'title', 'message', 'notification_type', 'scheduled_for', 'is_read', 'created_at']
+        read_only_fields = ['id', 'created_at']
